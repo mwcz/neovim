@@ -7465,7 +7465,7 @@ static void win_redr_ruler(win_T *wp, bool always)
   static bool did_show_ext_ruler = false;
 
   // If 'ruler' off or redrawing disabled, don't do anything
-  if (!p_ru) {
+  if (!p_ru || p_ch < 1) {
     return;
   }
 
