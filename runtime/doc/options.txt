@@ -1307,6 +1307,9 @@ A jump table for the options with a short description can be found at |Q_op|.
 	The value of this option is stored with the tab page, so that each tab
 	page can have a different value.
 
+	When 'cmdheight' is zero, it disables echo area and you cannot see one
+	line |:echo| or |:echomsg| output.
+
 						*'cmdwinheight'* *'cwh'*
 'cmdwinheight' 'cwh'	number	(default 7)
 			global
