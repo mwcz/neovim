@@ -5670,9 +5670,6 @@ void win_drag_status_line(win_T *dragwin, int offset)
   }
   cmdline_row = row;
   p_ch = Rows - cmdline_row;
-  if (p_ch < 1) {
-    p_ch = 1;
-  }
   curtab->tp_ch_used = p_ch;
   redraw_all_later(SOME_VALID);
   showmode();
