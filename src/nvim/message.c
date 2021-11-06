@@ -3139,7 +3139,7 @@ void msg_check(void)
   if (ui_has(kUIMessages)) {
     return;
   }
-  if (msg_row == Rows - 1 && msg_col >= sc_col) {
+  if (p_ch < 1 || (msg_row == Rows - 1 && msg_col >= sc_col)) {
     need_wait_return = true;
     redraw_cmdline = true;
   }
