@@ -129,6 +129,9 @@ static bool msg_ext_keep_after_cmdline = false;
 static int msg_grid_pos_at_flush = 0;
 static int msg_grid_scroll_discount = 0;
 
+// Save cmdheight option value
+static long msg_save_cmdheight = -1;
+
 static void ui_ext_msg_set_pos(int row, bool scrolled)
 {
   char buf[MAX_MCO + 1];
@@ -1320,6 +1323,13 @@ void msg_start(void)
 
   if (!msg_silent) {
     XFREE_CLEAR(keep_msg);              // don't display old message now
+  }
+
+  // Set cmdheight = 1 temporary
+  bool check_cmdheight = p_ch < 1 && !ui_has(kUIMessages);
+  if (check_cmdheight) {
+    msg_save_cmdheight = p_ch;
+    set_option_value("ch", 1L, NULL, 0);
   }
 
   if (need_clr_eos) {
@@ -3139,7 +3149,14 @@ void msg_check(void)
   if (ui_has(kUIMessages)) {
     return;
   }
-  if (p_ch < 1 || (msg_row == Rows - 1 && msg_col >= sc_col)) {
+
+  // Restore cmdheight
+  if (msg_save_cmdheight >= 0) {
+    set_option_value("ch", msg_save_cmdheight, NULL, 0);
+    msg_save_cmdheight = -1;
+  }
+
+  if (msg_row == Rows - 1 && msg_col >= sc_col) {
     need_wait_return = true;
     redraw_cmdline = true;
   }
