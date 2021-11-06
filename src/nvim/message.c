@@ -1335,9 +1335,9 @@ void msg_start(void)
       cmdmsg_rl ? Columns - 1 :
       0;
     if (p_ch < 1) {
-        msg_row -= 1;
+      msg_row -= 1;
     }
-  } else if (msg_didout) {                // start message on next line
+  } else if (msg_didout) {      // start message on next line
     msg_putchar('\n');
     did_return = true;
     cmdline_row = msg_row;
