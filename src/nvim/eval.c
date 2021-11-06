@@ -9797,6 +9797,13 @@ void ex_echo(exarg_T *eap)
   const int did_emsg_before = did_emsg;
   const int called_emsg_before = called_emsg;
 
+  bool check_cmdheight = p_ch < 1 && !ui_has(kUIMessages);
+  long save_cmdheight = p_ch;
+
+  if (check_cmdheight) {
+    set_option_value("ch", 1L, NULL, 0);
+  }
+
   if (eap->skip) {
     ++emsg_skip;
   }
@@ -9859,6 +9866,10 @@ void ex_echo(exarg_T *eap)
       msg_end();
     }
   }
+
+  if (check_cmdheight) {
+    set_option_value("ch", save_cmdheight, NULL, 0);
+  }
 }
 
 /*
@@ -9883,6 +9894,13 @@ void ex_execute(exarg_T *eap)
   int ret = OK;
   garray_T ga;
   int save_did_emsg;
+
+  bool check_cmdheight = p_ch < 1 && !ui_has(kUIMessages);
+  long save_cmdheight = p_ch;
+
+  if (check_cmdheight) {
+    set_option_value("ch", 1L, NULL, 0);
+  }
 
   ga_init(&ga, 1, 80);
 
@@ -9944,6 +9962,10 @@ void ex_execute(exarg_T *eap)
   }
 
   ga_clear(&ga);
+
+  if (check_cmdheight) {
+    set_option_value("ch", save_cmdheight, NULL, 0);
+  }
 
   if (eap->skip) {
     --emsg_skip;

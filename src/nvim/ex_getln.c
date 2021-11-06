@@ -2401,6 +2401,13 @@ static void abandon_cmdline(void)
 /// @param indent  indent for inside conditionals
 char_u *getcmdline(int firstc, long count, int indent, bool do_concat FUNC_ATTR_UNUSED)
 {
+  bool check_cmdheight = p_ch < 1 && !ui_has(kUIMessages);
+  long save_cmdheight = p_ch;
+
+  if (check_cmdheight) {
+    set_option_value("ch", 1L, NULL, 0);
+  }
+
   // Be prepared for situations where cmdline can be invoked recursively.
   // That includes cmd mappings, event handlers, as well as update_screen()
   // (custom status line eval), which all may invoke ":normal :".
@@ -2408,6 +2415,11 @@ char_u *getcmdline(int firstc, long count, int indent, bool do_concat FUNC_ATTR_
   save_cmdline(&save_ccline);
   char_u *retval = command_line_enter(firstc, count, indent);
   restore_cmdline(&save_ccline);
+
+  if (check_cmdheight) {
+    set_option_value("ch", save_cmdheight, NULL, 0);
+  }
+
   return retval;
 }
 
@@ -2429,6 +2441,13 @@ char *getcmdline_prompt(const char firstc, const char *const prompt, const int a
                         const Callback highlight_callback)
   FUNC_ATTR_WARN_UNUSED_RESULT FUNC_ATTR_MALLOC
 {
+  bool check_cmdheight = p_ch < 1 && !ui_has(kUIMessages);
+  long save_cmdheight = p_ch;
+
+  if (check_cmdheight) {
+    set_option_value("ch", 1L, NULL, 0);
+  }
+
   const int msg_col_save = msg_col;
 
   CmdlineInfo save_ccline;
@@ -2455,6 +2474,10 @@ char *getcmdline_prompt(const char firstc, const char *const prompt, const int a
   // so we need its modified msg_col left intact.
   if (ccline.cmdbuff != NULL) {
     msg_col = msg_col_save;
+  }
+
+  if (check_cmdheight) {
+    set_option_value("ch", save_cmdheight, NULL, 0);
   }
 
   return ret;
