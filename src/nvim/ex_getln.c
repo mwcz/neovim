@@ -996,6 +996,10 @@ static uint8_t *command_line_enter(int firstc, long count, int indent)
     msg_ext_clear_later();
   }
 
+  if (p_ch < 1) {
+    redraw_all_later(NOT_VALID);
+  }
+
   cmdline_level--;
   return p;
 }
@@ -2408,7 +2412,6 @@ char_u *getcmdline(int firstc, long count, int indent, bool do_concat FUNC_ATTR_
   save_cmdline(&save_ccline);
   char_u *retval = command_line_enter(firstc, count, indent);
   restore_cmdline(&save_ccline);
-
   return retval;
 }
 

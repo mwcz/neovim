@@ -1334,9 +1334,6 @@ void msg_start(void)
     msg_col =
       cmdmsg_rl ? Columns - 1 :
       0;
-    if (p_ch < 1) {
-      msg_row -= 1;
-    }
   } else if (msg_didout || p_ch < 1) {      // start message on next line
     msg_putchar('\n');
     did_return = true;
@@ -3017,10 +3014,15 @@ void msg_clr_eos_force(void)
     msg_row = msg_grid_pos;
   }
 
-  grid_fill(&msg_grid_adj, msg_row, msg_row + 1, msg_startcol, msg_endcol,
-            ' ', ' ', HL_ATTR(HLF_MSG));
-  grid_fill(&msg_grid_adj, msg_row + 1, Rows, 0, Columns,
-            ' ', ' ', HL_ATTR(HLF_MSG));
+  if (p_ch < 1) {
+    grid_fill(&msg_grid_adj, msg_row - 1, msg_row, msg_startcol, msg_endcol,
+              ' ', ' ', HL_ATTR(HLF_MSG));
+  } else {
+    grid_fill(&msg_grid_adj, msg_row, msg_row + 1, msg_startcol, msg_endcol,
+              ' ', ' ', HL_ATTR(HLF_MSG));
+    grid_fill(&msg_grid_adj, msg_row + 1, Rows, 0, Columns,
+              ' ', ' ', HL_ATTR(HLF_MSG));
+  }
 
   redraw_cmdline = true;  // overwritten the command line
   if (msg_row < Rows-1 || msg_col == (cmdmsg_rl ? Columns : 0)) {
@@ -3142,7 +3144,6 @@ void msg_check(void)
   if (ui_has(kUIMessages)) {
     return;
   }
-
   if (msg_row == Rows - 1 && msg_col >= sc_col) {
     need_wait_return = true;
     redraw_cmdline = true;
