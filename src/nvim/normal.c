@@ -3585,6 +3585,10 @@ void pop_showcmd(void)
 
 static void display_showcmd(void)
 {
+  if (p_ch < 1) {
+    return;
+  }
+
   int len;
   len = (int)STRLEN(showcmd_buf);
   showcmd_is_clear = (len == 0);
