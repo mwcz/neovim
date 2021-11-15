@@ -3541,7 +3541,7 @@ void redrawcmd(void)
   if (p_ch > 0) {
     msg_clr_eos();
   }
-  msg_no_more = FALSE;
+  msg_no_more = false;
 
   ccline.cmdspos = cmd_screencol(ccline.cmdpos);
 

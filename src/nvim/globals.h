@@ -1111,10 +1111,10 @@ struct cmdline_info {
 
 typedef struct cmdline_info CmdlineInfo;
 
-/* The current cmdline_info.  It is initialized in getcmdline() and after that
- * used by other functions.  When invoking getcmdline() recursively it needs
- * to be saved with save_cmdline() and restored with restore_cmdline().
- * TODO: make it local to getcmdline() and pass it around. */
+// The current cmdline_info.  It is initialized in getcmdline() and after that
+// used by other functions.  When invoking getcmdline() recursively it needs
+// to be saved with save_cmdline() and restored with restore_cmdline().
+// TODO: make it local to getcmdline() and pass it around.
 EXTERN struct cmdline_info ccline;
 
 #endif  // NVIM_GLOBALS_H
