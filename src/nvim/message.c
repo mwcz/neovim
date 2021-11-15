@@ -2265,7 +2265,7 @@ bool msg_use_msgsep(void)
 {
   // the full-screen scroll behavior doesn't really make sense with
   // 'ext_multigrid'
-  return ((dy_flags & DY_MSGSEP) || ui_has(kUIMultigrid));
+  return (((dy_flags & DY_MSGSEP) && p_ch > 0) || ui_has(kUIMultigrid));
 }
 
 bool msg_do_throttle(void)
