@@ -73,68 +73,6 @@
 #include "nvim/viml/parser/parser.h"
 #include "nvim/window.h"
 
-/// Command-line colors: one chunk
-///
-/// Defines a region which has the same highlighting.
-typedef struct {
-  int start;  ///< Colored chunk start.
-  int end;  ///< Colored chunk end (exclusive, > start).
-  int attr;  ///< Highlight attr.
-} CmdlineColorChunk;
-
-/// Command-line colors
-///
-/// Holds data about all colors.
-typedef kvec_t(CmdlineColorChunk) CmdlineColors;
-
-/// Command-line coloring
-///
-/// Holds both what are the colors and what have been colored. Latter is used to
-/// suppress unnecessary calls to coloring callbacks.
-typedef struct {
-  unsigned prompt_id;  ///< ID of the prompt which was colored last.
-  char *cmdbuff;  ///< What exactly was colored last time or NULL.
-  CmdlineColors colors;  ///< Last colors.
-} ColoredCmdline;
-
-/// Keeps track how much state must be sent to external ui.
-typedef enum {
-  kCmdRedrawNone,
-  kCmdRedrawPos,
-  kCmdRedrawAll,
-} CmdRedraw;
-
-/*
- * Variables shared between getcmdline(), redrawcmdline() and others.
- * These need to be saved when using CTRL-R |, that's why they are in a
- * structure.
- */
-struct cmdline_info {
-  char_u *cmdbuff;         // pointer to command line buffer
-  int cmdbufflen;               // length of cmdbuff
-  int cmdlen;                   // number of chars in command line
-  int cmdpos;                   // current cursor position
-  int cmdspos;                  // cursor column on screen
-  int cmdfirstc;                // ':', '/', '?', '=', '>' or NUL
-  int cmdindent;                // number of spaces before cmdline
-  char_u *cmdprompt;       // message in front of cmdline
-  int cmdattr;                  // attributes for prompt
-  int overstrike;               // Typing mode on the command line.  Shared by
-                                // getcmdline() and put_on_cmdline().
-  expand_T *xpc;             // struct being used for expansion, xp_pattern
-                             // may point into cmdbuff
-  int xp_context;               // type of expansion
-  char_u *xp_arg;          // user-defined expansion arg
-  int input_fn;                 // when TRUE Invoked for input() function
-  unsigned prompt_id;  ///< Prompt number, used to disable coloring on errors.
-  Callback highlight_callback;  ///< Callback used for coloring user input.
-  ColoredCmdline last_colors;   ///< Last cmdline colors
-  int level;                    // current cmdline level
-  struct cmdline_info *prev_ccline;  ///< pointer to saved cmdline state
-  char special_char;            ///< last putcmdline char (used for redraws)
-  bool special_shift;           ///< shift of last putcmdline char
-  CmdRedraw redraw_state;       ///< needed redraw for external cmdline
-};
 /// Last value of prompt_id, incremented when doing new prompt
 static unsigned last_prompt_id = 0;
 
@@ -189,15 +127,6 @@ typedef struct command_line_state {
   expand_T xpc;
   long *b_im_ptr;
 } CommandLineState;
-
-typedef struct cmdline_info CmdlineInfo;
-
-/* The current cmdline_info.  It is initialized in getcmdline() and after that
- * used by other functions.  When invoking getcmdline() recursively it needs
- * to be saved with save_cmdline() and restored with restore_cmdline().
- * TODO: make it local to getcmdline() and pass it around. */
-static struct cmdline_info ccline;
-
 static int cmd_showtail;                // Only show path tail in lists ?
 
 static int new_cmdpos;          // position set by set_cmdline_pos()
@@ -3334,7 +3263,7 @@ void put_on_cmdline(char_u *str, int len, int redraw)
     cursorcmd();
     draw_cmdline(ccline.cmdpos, ccline.cmdlen - ccline.cmdpos);
     // Avoid clearing the rest of the line too often.
-    if (cmdline_row != i || ccline.overstrike) {
+    if (p_ch > 0 && (cmdline_row != i || ccline.overstrike)) {
       msg_clr_eos();
     }
     msg_no_more = FALSE;
@@ -3595,7 +3524,9 @@ void redrawcmd(void)
   // when 'incsearch' is set there may be no command line while redrawing
   if (ccline.cmdbuff == NULL) {
     cmd_cursor_goto(cmdline_row, 0);
-    msg_clr_eos();
+    if (p_ch > 0) {
+      msg_clr_eos();
+    }
     return;
   }
 
@@ -3607,7 +3538,9 @@ void redrawcmd(void)
   // Don't use more prompt, truncate the cmdline if it doesn't fit.
   msg_no_more = TRUE;
   draw_cmdline(0, ccline.cmdlen);
-  msg_clr_eos();
+  if (p_ch > 0) {
+    msg_clr_eos();
+  }
   msg_no_more = FALSE;
 
   ccline.cmdspos = cmd_screencol(ccline.cmdpos);
