@@ -1322,7 +1322,7 @@ void msg_start(void)
     XFREE_CLEAR(keep_msg);              // don't display old message now
   }
 
-  if (need_clr_eos) {
+  if (need_clr_eos || (redrawing_cmdline && p_ch < 1)) {
     // Halfway an ":echo" command and getting an (error) message: clear
     // any text from the command.
     need_clr_eos = false;
