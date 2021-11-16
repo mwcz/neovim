@@ -1322,7 +1322,9 @@ void msg_start(void)
     XFREE_CLEAR(keep_msg);              // don't display old message now
   }
 
-  if (need_clr_eos || (redrawing_cmdline && p_ch < 1)) {
+  bool none_msg_area = !ui_has(kUIMessages) && p_ch < 1;
+
+  if (need_clr_eos || (none_msg_area && redrawing_cmdline)) {
     // Halfway an ":echo" command and getting an (error) message: clear
     // any text from the command.
     need_clr_eos = false;
@@ -1334,10 +1336,10 @@ void msg_start(void)
     msg_col =
       cmdmsg_rl ? Columns - 1 :
       0;
-    if (p_ch < 1 && ccline.cmdprompt == NULL) {
+    if (none_msg_area && ccline.cmdprompt == NULL) {
       msg_row -= 1;
     }
-  } else if (msg_didout || p_ch < 1) {      // start message on next line
+  } else if (msg_didout || none_msg_area) { // start message on next line
     msg_putchar('\n');
     did_return = true;
     cmdline_row = msg_row;

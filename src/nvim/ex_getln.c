@@ -925,7 +925,7 @@ static uint8_t *command_line_enter(int firstc, long count, int indent)
     msg_ext_clear_later();
   }
 
-  if (p_ch < 1) {
+  if (p_ch < 1 && !ui_has(kUICmdline)) {
     redraw_all_later(NOT_VALID);
   }
 
