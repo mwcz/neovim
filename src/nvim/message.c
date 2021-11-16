@@ -1339,7 +1339,7 @@ void msg_start(void)
     if (none_msg_area && ccline.cmdprompt == NULL) {
       msg_row -= 1;
     }
-  } else if (msg_didout || none_msg_area) { // start message on next line
+  } else if (msg_didout || none_msg_area) {  // start message on next line
     msg_putchar('\n');
     did_return = true;
     cmdline_row = msg_row;
