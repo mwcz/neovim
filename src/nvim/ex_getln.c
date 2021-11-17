@@ -925,7 +925,8 @@ static uint8_t *command_line_enter(int firstc, long count, int indent)
     msg_ext_clear_later();
   }
 
-  if (p_ch < 1 && !ui_has(kUICmdline)) {
+  // Buffer redraw is needed if no command line
+  if (p_ch < 1 && !ui_has(kUICmdline) && !cmd_silent) {
     redraw_all_later(NOT_VALID);
   }
 
