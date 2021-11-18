@@ -160,7 +160,8 @@ bool msg_use_grid(void)
 void msg_grid_validate(void)
 {
   grid_assign_handle(&msg_grid);
-  bool should_alloc = msg_use_grid() && p_ch > 0;
+  bool should_alloc = msg_use_grid();
+  int max_rows = Rows - p_ch;
   if (should_alloc && (msg_grid.Rows != Rows || msg_grid.Columns != Columns
                        || !msg_grid.chars)) {
     // TODO(bfredl): eventually should be set to "invalid". I e all callers
@@ -172,7 +173,7 @@ void msg_grid_validate(void)
     msg_grid.dirty_col = xcalloc(Rows, sizeof(*msg_grid.dirty_col));
 
     // Tricky: allow resize while pager is active
-    int pos = msg_scrolled ? msg_grid_pos : Rows - p_ch;
+    int pos = msg_scrolled ? msg_grid_pos : max_rows;
     ui_comp_put_grid(&msg_grid, pos, 0, msg_grid.Rows, msg_grid.Columns,
                      false, true);
     ui_call_grid_resize(msg_grid.handle, msg_grid.Columns, msg_grid.Rows);
@@ -182,7 +183,7 @@ void msg_grid_validate(void)
     msg_grid.focusable = false;
     msg_grid_adj.target = &msg_grid;
     if (!msg_scrolled) {
-      msg_grid_set_pos(Rows - p_ch, false);
+      msg_grid_set_pos(max_rows, false);
     }
   } else if (!should_alloc && msg_grid.chars) {
     ui_comp_remove_grid(&msg_grid);
@@ -193,8 +194,8 @@ void msg_grid_validate(void)
     msg_grid_adj.row_offset = 0;
     msg_grid_adj.target = &default_grid;
     redraw_cmdline = true;
-  } else if (msg_grid.chars && !msg_scrolled && msg_grid_pos != Rows - p_ch) {
-    msg_grid_set_pos(Rows - p_ch, false);
+  } else if (msg_grid.chars && !msg_scrolled && msg_grid_pos != max_rows) {
+    msg_grid_set_pos(max_rows, false);
   }
 
   if (msg_grid.chars && cmdline_row < msg_grid_pos) {
