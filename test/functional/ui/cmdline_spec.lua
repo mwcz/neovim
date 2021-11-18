@@ -888,7 +888,7 @@ describe("cmdline height", function()
       ~                        |
       ~                        |
       ~                        |
-      ~            0,0-1   All |
+      ~                        |
     ]]}
 
     command("set cmdheight=0 noruler laststatus=0")
