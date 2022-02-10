@@ -6653,7 +6653,7 @@ void win_set_inner_size(win_T *wp, bool valid_cursor)
     // There is no point in adjusting the scroll position when exiting.  Some
     // values might be invalid.
     if (valid_cursor && !exiting && *p_spk == 'c') {
-      scroll_to_fraction(wp, prev_height);
+      /* scroll_to_fraction(wp, prev_height); */
     }
     redraw_later(wp, UPD_SOME_VALID);
   }
