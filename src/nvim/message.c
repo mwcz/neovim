@@ -18,6 +18,7 @@
 #include "nvim/eval.h"
 #include "nvim/ex_docmd.h"
 #include "nvim/ex_eval.h"
+#include "nvim/ex_getln.h"
 #include "nvim/fileio.h"
 #include "nvim/func_attr.h"
 #include "nvim/garray.h"
@@ -160,6 +161,7 @@ void msg_grid_validate(void)
 {
   grid_assign_handle(&msg_grid);
   bool should_alloc = msg_use_grid();
+  int max_rows = Rows - p_ch;
   if (should_alloc && (msg_grid.Rows != Rows || msg_grid.Columns != Columns
                        || !msg_grid.chars)) {
     // TODO(bfredl): eventually should be set to "invalid". I e all callers
@@ -171,7 +173,7 @@ void msg_grid_validate(void)
     msg_grid.dirty_col = xcalloc(Rows, sizeof(*msg_grid.dirty_col));
 
     // Tricky: allow resize while pager is active
-    int pos = msg_scrolled ? msg_grid_pos : Rows - p_ch;
+    int pos = msg_scrolled ? msg_grid_pos : max_rows;
     ui_comp_put_grid(&msg_grid, pos, 0, msg_grid.Rows, msg_grid.Columns,
                      false, true);
     ui_call_grid_resize(msg_grid.handle, msg_grid.Columns, msg_grid.Rows);
@@ -181,7 +183,7 @@ void msg_grid_validate(void)
     msg_grid.focusable = false;
     msg_grid_adj.target = &msg_grid;
     if (!msg_scrolled) {
-      msg_grid_set_pos(Rows - p_ch, false);
+      msg_grid_set_pos(max_rows, false);
     }
   } else if (!should_alloc && msg_grid.chars) {
     ui_comp_remove_grid(&msg_grid);
@@ -192,8 +194,8 @@ void msg_grid_validate(void)
     msg_grid_adj.row_offset = 0;
     msg_grid_adj.target = &default_grid;
     redraw_cmdline = true;
-  } else if (msg_grid.chars && !msg_scrolled && msg_grid_pos != Rows - p_ch) {
-    msg_grid_set_pos(Rows - p_ch, false);
+  } else if (msg_grid.chars && !msg_scrolled && msg_grid_pos != max_rows) {
+    msg_grid_set_pos(max_rows, false);
   }
 
   if (msg_grid.chars && cmdline_row < msg_grid_pos) {
@@ -1322,7 +1324,9 @@ void msg_start(void)
     XFREE_CLEAR(keep_msg);              // don't display old message now
   }
 
-  if (need_clr_eos) {
+  bool none_msg_area = !ui_has(kUIMessages) && p_ch < 1;
+
+  if (need_clr_eos || (none_msg_area && redrawing_cmdline)) {
     // Halfway an ":echo" command and getting an (error) message: clear
     // any text from the command.
     need_clr_eos = false;
@@ -1334,7 +1338,10 @@ void msg_start(void)
     msg_col =
       cmdmsg_rl ? Columns - 1 :
       0;
-  } else if (msg_didout) {                // start message on next line
+    if (none_msg_area && ccline.cmdprompt == NULL) {
+      msg_row -= 1;
+    }
+  } else if (msg_didout || none_msg_area) {  // start message on next line
     msg_putchar('\n');
     did_return = true;
     cmdline_row = msg_row;
@@ -3014,10 +3021,12 @@ void msg_clr_eos_force(void)
     msg_row = msg_grid_pos;
   }
 
-  grid_fill(&msg_grid_adj, msg_row, msg_row + 1, msg_startcol, msg_endcol, ' ',
-            ' ', HL_ATTR(HLF_MSG));
-  grid_fill(&msg_grid_adj, msg_row + 1, Rows, 0, Columns, ' ', ' ',
-            HL_ATTR(HLF_MSG));
+  grid_fill(&msg_grid_adj, msg_row, msg_row + 1, msg_startcol, msg_endcol,
+            ' ', ' ', HL_ATTR(HLF_MSG));
+  if (p_ch > 0) {
+    grid_fill(&msg_grid_adj, msg_row + 1, Rows, 0, Columns,
+              ' ', ' ', HL_ATTR(HLF_MSG));
+  }
 
   redraw_cmdline = true;  // overwritten the command line
   if (msg_row < Rows-1 || msg_col == (cmdmsg_rl ? Columns : 0)) {

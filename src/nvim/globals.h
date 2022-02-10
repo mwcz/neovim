@@ -6,6 +6,7 @@
 
 #include "nvim/event/loop.h"
 #include "nvim/ex_eval.h"
+#include "nvim/ex_getln.h"
 #include "nvim/iconv.h"
 #include "nvim/macros.h"
 #include "nvim/mbyte.h"
@@ -727,6 +728,7 @@ EXTERN bool listcmd_busy INIT(= false);     // set when :argdo, :windo or
                                             // :bufdo is executing
 EXTERN bool need_start_insertmode INIT(= false);
 // start insert mode soon
+EXTERN char *last_mode INIT(= NULL);
 EXTERN char_u *last_cmdline INIT(= NULL);      // last command line (for ":)
 EXTERN char_u *repeat_cmdline INIT(= NULL);    // command line for "."
 EXTERN char_u *new_last_cmdline INIT(= NULL);  // new value for last_cmdline
@@ -1046,5 +1048,10 @@ typedef enum {
 
 // Only filled for Win32.
 EXTERN char windowsVersion[20] INIT(= { 0 });
+
+// The current cmdline_info.  It is initialized in getcmdline() and after that
+// used by other functions.  When invoking getcmdline() recursively it needs
+// to be saved with save_cmdline() and restored with restore_cmdline().
+EXTERN struct cmdline_info ccline;
 
 #endif  // NVIM_GLOBALS_H

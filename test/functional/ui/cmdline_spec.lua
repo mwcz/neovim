@@ -4,6 +4,8 @@ local clear, feed = helpers.clear, helpers.feed
 local source = helpers.source
 local command = helpers.command
 local assert_alive = helpers.assert_alive
+local eval = helpers.eval
+local eq = helpers.eq
 
 local function new_screen(opt)
   local screen = Screen.new(25, 5)
@@ -854,6 +856,51 @@ describe("cmdline height", function()
     screen:attach()
     command('set cmdheight=9999')
     screen:try_resize(25, 5)
+    assert_alive()
+  end)
+
+  it('cmdheight can be 0', function()
+    clear()
+    local screen = Screen.new(25, 5)
+    screen:attach()
+
+    command("set cmdheight=1 noruler laststatus=2")
+    screen:expect{grid=[[
+      ^                         |
+      ~                        |
+      ~                        |
+      [No Name]                |
+                               |
+    ]]}
+
+    command("set cmdheight=0 noruler laststatus=2")
+    screen:expect{grid=[[
+      ^                         |
+      ~                        |
+      ~                        |
+      ~                        |
+      [No Name]                |
+    ]]}
+
+    command("set cmdheight=0 ruler laststatus=0")
+    screen:expect{grid=[[
+      ^                         |
+      ~                        |
+      ~                        |
+      ~                        |
+      ~                        |
+    ]]}
+
+    command("set cmdheight=0 noruler laststatus=0")
+    screen:expect{grid=[[
+      ^                         |
+      ~                        |
+      ~                        |
+      ~                        |
+      ~                        |
+    ]]}
+    eq(0, eval('&cmdheight'))
+
     assert_alive()
   end)
 end)
